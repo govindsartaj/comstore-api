@@ -1,1 +1,1 @@
-ComStore API built using Express.js 
+ComStore API built using Express.js and Firebase.
