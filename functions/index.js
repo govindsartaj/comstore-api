@@ -4,7 +4,7 @@ const app = require("express")();
 
 const FBAuth = require("./util/fbAuth");
 
-const { getAllStores, createOneStore } = require("./handlers/stores");
+const { getAllStores, createOneStore, getStore, addItemToStore } = require("./handlers/stores");
 const {
   signup,
   login,
@@ -16,6 +16,8 @@ const {
 // store routes
 app.get("/stores", getAllStores);
 app.post("/createStore", FBAuth, createOneStore);
+app.get('/store/:storeId', getStore);
+app.post('/store/:storeId/item', FBAuth, addItemToStore)
 
 // user routes
 app.post("/signup", signup);

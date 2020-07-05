@@ -59,3 +59,22 @@ exports.reduceUserInfo = (data) => {
 
   return userInfo;
 };
+
+exports.validateItemData = (data) => {
+  let errors = {};
+
+  if (isEmpty(data.itemDesc.trim())) {
+    errors.itemDesc = "Cannot be empty";
+  }
+  if (isEmpty(data.itemName.trim())) {
+    errors.itemName = "Cannot be empty";
+  }
+  if (typeof(data.price) !== "number") {
+    errors.price = "Must be a valid price";
+  }
+
+  return {
+    errors,
+    valid: Object.keys(errors).length === 0,
+  };
+}

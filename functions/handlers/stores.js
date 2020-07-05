@@ -1,4 +1,6 @@
 const { db } = require("../util/admin");
+const { response, request } = require("express");
+const { validateItemData } = require("../util/validation");
 
 exports.getAllStores = (request, response) => {
   db.collection("stores")
@@ -7,7 +9,7 @@ exports.getAllStores = (request, response) => {
       let stores = [];
       data.forEach((doc) => {
         stores.push({
-          storeID: doc.id,
+          storeId: doc.id,
           storeData: doc.data(),
         });
       });
@@ -19,16 +21,71 @@ exports.getAllStores = (request, response) => {
 exports.createOneStore = (request, response) => {
   const newStore = {
     owner: request.user.username,
-    store_name: request.body.store_name,
-    store_items: [],
+    storeName: request.body.storeName,
   };
+
+  if (newStore.storeName.trim() === "") {
+    return res.status(400).json({ storeName: "Cannot be empty" });
+  }
+
   db.collection("stores")
     .add(newStore)
     .then((doc) => {
+      db.doc(`/stores/${doc.id}`).update({ storeId: `${doc.id}` });
       response.json({ message: `document ${doc.id} created successfully` });
     })
     .catch((err) => {
       response.status(500).json({ error: "something went wrong!" });
       console.error(err);
+    });
+};
+
+exports.getStore = (request, response) => {
+  let storeData = {};
+  db.doc(`/stores/${request.params.storeId}`)
+    .get()
+    .then((doc) => {
+      if (!doc.exists) {
+        return response.status(404).json({ error: "Store does not exist" });
+      }
+      storeData = doc.data();
+      storeData.storeId = doc.id;
+      return db
+        .collection("items")
+        .where("storeId", "==", request.params.storeId)
+        .get();
+    })
+    .then((data) => {
+      storeData.items = [];
+      data.forEach((doc) => {
+        storeData.items.push(doc.data());
+      });
+      return response.json(storeData);
+    })
+    .catch((err) => {
+      console.error(err);
+      return res.status(500).json({ error: err.code });
+    });
+};
+
+exports.addItemToStore = (request, response) => {
+  const { valid, errors } = validateItemData(request.body);
+
+  if (!valid) {
+    return response.status(400).json(errors);
+  }
+
+  let itemData = request.body;
+  itemData.storeId = request.params.storeId;
+  itemData.owner = request.user.username;
+  itemData.createdAt = new Date().toISOString();
+
+  db.collection("items")
+    .add(itemData)
+    .then((doc) => {
+      response.json({ message: `document ${doc.id} created successfully` });
+    })
+    .catch((err) => {
+      response.error({ error: err.code });
     });
 };
