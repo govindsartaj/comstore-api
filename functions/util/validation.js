@@ -46,3 +46,16 @@ exports.validateLoginData = (data) => {
     valid: Object.keys(errors).length === 0,
   };
 };
+
+exports.reduceUserInfo = (data) => {
+  let userInfo = {};
+
+  if (!isEmpty(data.bio.trim())) {
+    userInfo.bio = data.bio;
+  }
+  if (!isEmpty(data.location.trim())) {
+    userInfo.location = data.location;
+  }
+
+  return userInfo;
+};

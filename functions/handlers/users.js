@@ -1,25 +1,14 @@
 const { db, admin } = require("../util/admin");
-const { validateSignUpData, validateLoginData } = require("../util/validation");
+const {
+  validateSignUpData,
+  validateLoginData,
+  reduceUserInfo,
+} = require("../util/validation");
 
 const config = require("../util/config");
 const firebase = require("firebase");
+const { request, response, json } = require("express");
 firebase.initializeApp(config);
-
-exports.getAllUsers = (request, response) => {
-  db.collection("users")
-    .get()
-    .then((data) => {
-      let users = [];
-      data.forEach((doc) => {
-        users.push({
-          userID: doc.id,
-          userData: doc.data(),
-        });
-      });
-      return response.json(users);
-    })
-    .catch((err) => console.error(err));
-};
 
 exports.signup = (request, response) => {
   const newUser = {
@@ -117,6 +106,24 @@ exports.login = (request, response) => {
     });
 };
 
+// add user info
+exports.addUserInfo = (request, response) => {
+  let userInfo = reduceUserInfo(request.body);
+
+  db.doc(`/users/${request.user.username}`)
+    .update(userInfo)
+    .then(() => {
+      return response.json({
+        message: `User info for user ${request.user.username} updated successfully`,
+      });
+    })
+    .catch((err) => {
+      console.error(err);
+      return response.status(500).json({ error: err.code });
+    });
+};
+
+// upload user profile image
 exports.uploadUserImage = (request, response) => {
   const BusBoy = require("busboy");
   const path = require("path");
@@ -129,6 +136,9 @@ exports.uploadUserImage = (request, response) => {
   let imageForUpload = {};
 
   busboy.on("file", (fieldname, file, filename, encoding, mimetype) => {
+    if (mimetype !== "image/jpeg" && mimetype !== "image/png") {
+      return response.status(400).json({ error: "Wrong file type" });
+    }
     const imageExtension = filename.split(".")[filename.split(".").length - 1];
     imageFileName = `${Math.round(
       Math.random() * 100000000000000000000
@@ -160,6 +170,33 @@ exports.uploadUserImage = (request, response) => {
         console.error(err);
         return response.status(500).json({ error: err.code });
       });
-	});
-	busboy.end(request.rawBody);
+  });
+  busboy.end(request.rawBody);
+};
+
+// get own user info
+exports.getAuthenticatedUser = (request, response) => {
+  let userData = {};
+  db.doc(`/users/${request.user.username}`)
+    .get()
+    .then((doc) => {
+      if (doc.exists) {
+        userData.credentials = doc.data();
+        return db
+          .collection("stores")
+          .where("owner", "==", request.user.username)
+          .get();
+      }
+    })
+    .then((data) => {
+      userData.stores = [];
+      data.forEach((doc) => {
+        userData.stores.push(doc.data());
+      });
+      return response.json(userData);
+    })
+    .catch((err) => {
+      console.error(err);
+      return res.status(500).json({ error: err.code });
+    });
 };
