@@ -1,6 +1,10 @@
 const admin = require("firebase-admin");
 admin.initializeApp();
+var GeoFirestore = require("geofirestore").GeoFirestore;
 
 const db = admin.firestore();
 
-module.exports = { admin, db };
+const geofirestore = new GeoFirestore(db);
+const StoresGeoRef = geofirestore.collection("stores");
+
+module.exports = { admin, db, geofirestore, StoresGeoRef };

@@ -1,6 +1,26 @@
-const { db } = require("../util/admin");
+const { db, admin, StoresGeoRef } = require("../util/admin");
 const { response, request } = require("express");
 const { validateItemData } = require("../util/validation");
+
+exports.getNearbyStore = (request, response) => {
+  const query = StoresGeoRef.near({
+    center: new admin.firestore.GeoPoint(40.7589, -73.9851),
+    radius: 1000,
+  });
+  query
+    .get()
+    .then((snap) => {
+      const docs = snap.docs.map((doc) => {
+        doc["data"] = doc["data"]();
+        return doc;
+      });
+      response.send({ docs });
+    })
+    .catch((err) => {
+      console.error(err);
+      response.status(500).json({ error: "something broke!" });
+    });
+};
 
 exports.getAllStores = (request, response) => {
   db.collection("stores")
@@ -22,14 +42,14 @@ exports.createOneStore = (request, response) => {
   const newStore = {
     owner: request.user.username,
     storeName: request.body.storeName,
+    coordinates: new admin.firestore.GeoPoint(40.7589, -73.9851),
   };
 
   if (newStore.storeName.trim() === "") {
     return res.status(400).json({ storeName: "Cannot be empty" });
   }
 
-  db.collection("stores")
-    .add(newStore)
+  StoresGeoRef.add(newStore)
     .then((doc) => {
       db.doc(`/stores/${doc.id}`).update({ storeId: `${doc.id}` });
       response.json({ message: `document ${doc.id} created successfully` });
