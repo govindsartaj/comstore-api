@@ -1,10 +1,19 @@
-ComStore API built using Express.js and Firebase.
+ComStore API built using Node.js, Express.js and Firebase.
 # Base URL
 * [https://us-central1-comstore-ga.cloudfunctions.net](https://us-central1-comstore-ga.cloudfunctions.net)
 # Endpoints
-Note: Ask me (Govind) for info about POST request body info, or click on links below & go thru code. Too lazy to write it here lol.
-* [Get Users](https://github.com/govindsartaj/comstore-api/blob/c49107b5a7c08f194a2388ce47720eb1fb17bfd2/functions/index.js#L27) : `GET /api/users/`
-* [Get Stores](https://github.com/govindsartaj/comstore-api/blob/c49107b5a7c08f194a2388ce47720eb1fb17bfd2/functions/index.js#L9) : `GET /api/stores/`
-* [Create User](https://github.com/govindsartaj/comstore-api/blob/c49107b5a7c08f194a2388ce47720eb1fb17bfd2/functions/index.js#L64) : `POST /api/createUser/`
-* [Create Store](https://github.com/govindsartaj/comstore-api/blob/c49107b5a7c08f194a2388ce47720eb1fb17bfd2/functions/index.js#L45) : `POST /api/createStore/`
-* [Sign Up](https://github.com/govindsartaj/comstore-api/blob/c49107b5a7c08f194a2388ce47720eb1fb17bfd2/functions/index.js#L91) : `POST /api/signup/`
+Note: Ask me (Govind) for info about request body info, or go thru code lol
+## Users
+* Sign Up : `POST /api/signup/`
+* Log in : `POST /api/login/`
+* Change user image (protected) : `POST /api/user/image`
+* Change user info (protected) : `POST /api/user/`
+* Get logged-in user info (protected) : `GET /api/user/`
+
+## Stores
+* Get all stores : `GET /api/stores`
+* Create a store (protected) : `POST /api/createStore`
+* Get store info : `GET /api/store/:storeId`
+* Add item to store (protected) : `POST /api/store/:storeId/item`
+* Get nearby stores : `POST /api/stores/nearby`
+
